@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+package apis.proto.v1alpha1.auth;
+option go_package = "v1alpha1/auth";
+
+import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
+import "validate/validate.proto";
+import "google/protobuf/empty.proto";
+
+service Auth {
+  rpc Statuses(google.protobuf.Empty) returns (StatusesResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/auth/status",
+    };
+  }
+
+  rpc Authentication (AuthenticationRequest) returns (AuthenticationResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/auth/authentication",
+      body: "*"
+    };
+  }
+}
+
+message StatusesResponse {
+  string code = 1;
+  string status = 2;
+  string version = 3;
+}
+
+message AuthenticationRequest {
+  oneof auth_type {
+    string email = 1 [(validate.rules).string.email = true];
+    string username = 2 [(validate.rules).string = {
+      pattern: "^[a-zA-Z0-9_-]{4,16}$",
+      min_len: 4,
+      max_len: 16,
+    }];
+  }
+  string password = 3 [(validate.rules).string = {
+    pattern: "[A-Z]+",
+    min_len: 7,
+    max_len: 24,
+  }];
+
+}
+
+message AuthenticationResponse {
+  string code = 1;
+  string message = 2;
+  string authorization_token = 3;
+}
